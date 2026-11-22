@@ -1,0 +1,44 @@
+name: deploy
+on:
+  push:
+    tags:
+      - 'v[0-9]*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: 1. 소스코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 2. .NET 환경 세팅
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+
+      - name: 3. 계약 프로젝트 빌드 검증
+        run: dotnet build src/AiChatServer.Contracts/AiChatServer.Contracts.csproj -c Release
+
+      - name: 4. 패키지 빌드 및 압축 (Pack)
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          dotnet pack src/AiChatServer.Contracts/AiChatServer.Contracts.csproj -c Release -o out -p:Version=$VERSION
+          ls -l out
+
+      - name: 5. NuGet 임시 API 키 발급 (OIDC)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: KimBurmJun
+
+      - name: 6. NuGet Push
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          dotnet nuget push "out/AiChatServer.Contracts.$VERSION.nupkg" \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key ${{ steps.login.outputs.NUGET_API_KEY }} \
+            --skip-duplicate

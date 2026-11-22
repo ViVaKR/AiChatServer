@@ -1,0 +1,104 @@
+# ==========================================
+# AI 채팅 서버 (AiChatServer.Grpc)
+# ------------------------------------------
+# 여러 사이트(buddham, vivabm ...)가 함께 쓰는 공용 서버라 별도 네임스페이스(ai)에 둡니다.
+# 사이트에서는 이 주소로 접속합니다:
+#   http://aichat-svc.ai.svc.cluster.local:50051
+# 비밀 값이 없어서 Secret 은 쓰지 않습니다. (Ollama 주소와 모델명만 환경변수)
+# ==========================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aichat-server-deploy
+  namespace: ai
+spec:
+  # M1 의 GPU 한 장이 직렬로 처리하므로 1개면 충분합니다.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aichat-server
+  template:
+    metadata:
+      labels:
+        app: aichat-server
+    spec:
+      # 서버 종료 시 진행 중인 스트림이 끝날 시간 (앱 ShutdownTimeout 30초 + 여유)
+      terminationGracePeriodSeconds: 45
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: aichat-server-container
+          image: kimbumjun/aichat-server:latest
+          imagePullPolicy: Always
+          ports:
+            - name: grpc
+              containerPort: 8080
+            - name: mgmt
+              containerPort: 8081
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: 'Production'
+
+            # --- Ollama (M1 호스트, 공유기에서 DHCP 예약으로 IP 고정 권장) ---
+            - name: Ollama__BaseUrl
+              value: 'http://192.168.0.8:11434'
+            - name: Ollama__RequestTimeoutSeconds
+              value: '300'
+
+            # --- 페르소나: 키 이름은 proto enum(Persona) 의 C# 이름 ---
+            # SystemPrompt 를 지정하지 않으면 Modelfile 의 SYSTEM(법등)이 그대로 적용됩니다.
+            - name: Personas__Beopdeung__Model
+              value: 'dhamma-chat'
+            - name: Personas__Beopdeung__Think
+              value: 'false'
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz/live
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz/ready
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aichat-svc
+  namespace: ai
+spec:
+  type: ClusterIP
+  selector:
+    app: aichat-server
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: grpc
+      appProtocol: kubernetes.io/h2c
