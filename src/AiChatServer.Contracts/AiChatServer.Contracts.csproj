@@ -1,4 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net11.0</TargetFrameworks>
+    <Description>AiChatServer 와 통신하기 위한 gRPC / Protobuf 계약 (ChatService, Persona, 스트림 청크)</Description>
+    <IsPacable>true</IsPacable>
+    <PackageTags>grpc;protobuf;contracts;chat;ollama</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
 
   <ItemGroup>
     <Protobuf Include="Protos/**/*.proto" GrpcServices="Both" />
@@ -12,5 +19,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

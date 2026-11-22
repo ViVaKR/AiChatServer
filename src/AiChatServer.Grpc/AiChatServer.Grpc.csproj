@@ -1,26 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <ItemGroup>
-    <ProjectReference Include="../AiChatServer.Contracts/AiChatServer.Contracts.csproj" />
+    <ProjectReference Include="..\AiChatServer.Contracts\AiChatServer.Contracts.csproj" />
   </ItemGroup>
-
   <PropertyGroup>
-    <PackageId>AiChatServer.Grpc</PackageId>
-    <Authors>ViVaKR</Authors>
-    <Company>BM</Company>
-    <Description>Grpc 와 함께 하는 Chat Server</Description>
-    <PackageTags>signalr;chat;aspnetcore</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/ViVaKR/Viva.Chat</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
+    <TargetFramework>net11.0</TargetFramework>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Grpc.AspNetCore.HealthChecks" />
     <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
   </ItemGroup>
-
-
 </Project>
