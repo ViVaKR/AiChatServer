@@ -1,8 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net11.0</TargetFrameworks>
+    <PackageId>AiChatServer.Contracts</PackageId>
+    <Authors>ViVaKR</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/ViVaKR/AiChatServer</RepositoryUrl>
     <Description>AiChatServer 와 통신하기 위한 gRPC / Protobuf 계약 (ChatService, Persona, 스트림 청크)</Description>
-    <IsPacable>true</IsPacable>
+    <IsPackable>true</IsPackable>
     <PackageTags>grpc;protobuf;contracts;chat;ollama</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
